@@ -1,0 +1,13 @@
+name: Swiftlint
+
+on:
+  pull_request:
+    paths:
+      - '.swiftlint.yml'
+      - 'Sources/**'
+      - 'Tests/**'
+      - '.github/workflows/swiftlint.yml'
+
+jobs:
+  swiftlint:
+    uses: swift-bloc/.github/.github/workflows/swiftlint.yml@main

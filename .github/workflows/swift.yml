@@ -1,0 +1,22 @@
+name: Swift
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Package.swift'
+      - 'Sources/**'
+      - 'Tests/**'
+      - '.github/workflows/swift.yml'
+
+jobs:
+  swift:
+    strategy:
+        fail-fast: false
+        matrix:
+          platform: [macOS-latest, ubuntu-latest]
+          swift-version: [5.7.2, 5.8, 5.9]
+    uses: swift-bloc/.github/.github/workflows/swift.yml@main
+    with:
+      swift-version: ${{ matrix.swift-version }}
+      platform: ${{ matrix.platform }}
