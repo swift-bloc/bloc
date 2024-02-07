@@ -1,10 +1,18 @@
+/*
+ See LICENSE for this package's licensing information.
+*/
+
 import Foundation
 
-public struct Transition<Event, State> {
+public struct Transition<Event: Sendable, State: Sendable>: Sendable {
+
+    // MARK: - Public properties
 
     public let currentState: State
     public let event: Event
     public let nextState: State
+
+    // MARK: - Inits
 
     public init(
         currentState: State,

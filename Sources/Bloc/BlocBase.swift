@@ -1,8 +1,12 @@
+/*
+ See LICENSE for this package's licensing information.
+*/
+
 import Foundation
 
-public protocol Streamable<State> {
+public protocol Streamable<State>: Sendable {
 
-    associatedtype State
+    associatedtype State: Sendable
 
     var stream: Stream<State> { get }
 }
@@ -14,16 +18,16 @@ public protocol StateStreamable<State>: Streamable {
 
 public protocol StateStreamableSource<State>: StateStreamable, Closable {}
 
-public protocol Closable {
+public protocol Closable: Sendable {
 
     var isClosed: Bool { get }
 
     func close() async throws
 }
 
-protocol Emittable<_State> {
+protocol Emittable<_State>: Sendable {
 
-    associatedtype _State
+    associatedtype _State: Sendable
 
     func emit(_ state: _State) throws
 }
@@ -33,21 +37,15 @@ public protocol ErrorSink: Closable {
     func addError(_ error: Error)
 }
 
-public struct Stream<Element>: AsyncSequence {
+open class BlocBase<State>: StateStreamableSource, Emittable, ErrorSink, @unchecked Sendable {
 
-    public struct AsyncIterator: AsyncIteratorProtocol {
+    // MARK: - Open properties
 
-        public mutating func next() async throws -> Element? {
-            fatalError("next() has not been implemented")
-        }
+    open var observer: BlocObserver {
+        fatalError("getter:observer has not been implemented")
     }
 
-    public func makeAsyncIterator() -> AsyncIterator {
-        fatalError("makeAsyncIterator() has not been implemented")
-    }
-}
-
-open class BlocBase<State>: StateStreamableSource, Emittable, ErrorSink {
+    // MARK: - Public properties
 
     public var stream: Stream<State> {
         fatalError("getter:stream has not been implemented")
@@ -57,21 +55,28 @@ open class BlocBase<State>: StateStreamableSource, Emittable, ErrorSink {
         fatalError("getter:isClosed has not been implemented")
     }
 
-    private(set) public var state: State
+    public var state: State {
+        lock.withLock { _state }
+    }
+
+    // MARK: - Private properties
+
+    private let lock = Lock()
+    private let streamController = StreamController<State>()
+
+    // MARK: - Unsafe properties
 
     private var _emitted = false
+    private var _state: State
 
-    open var observer: BlocObserver { 
-        fatalError("getter:observer has not been implemented")
-    }
+    // MARK: - Inits
 
     public init(_ state: State) {
-        fatalError("init(_:) has not been implemented")
+        defer { observer.onCreate(self) }
+        self._state = state
     }
 
-    func emit(_ state: State) throws {
-        fatalError("emit(_:) has not been implemented")
-    }
+    // MARK: - Open methods
 
     open func onChange(_ change: Change<State>) {
         fatalError("onChange(_:) has not been implemented")
@@ -87,5 +92,11 @@ open class BlocBase<State>: StateStreamableSource, Emittable, ErrorSink {
 
     open func close() async throws {
         fatalError("close() has not been implemented")
+    }
+
+    // MARK: - Internal methods
+
+    func emit(_ state: State) throws {
+        fatalError("emit(_:) has not been implemented")
     }
 }

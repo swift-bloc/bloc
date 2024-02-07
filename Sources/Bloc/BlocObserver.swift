@@ -1,30 +1,59 @@
+/*
+ See LICENSE for this package's licensing information.
+*/
+
 import Foundation
 
-open class BlocObserver {
+public protocol BlocObserver: Sendable {
 
-    public init() {}
+    func onCreate<State>(_ bloc: BlocBase<State>)
 
-    open func onCreate(_ bloc: Any) {}
+    func onEvent<Event, State>(
+        _ bloc: Bloc<Event, State>,
+        _ event: Event
+    )
+    
+    func onChange<State>(
+        _ bloc: BlocBase<State>,
+        _ change: Change<State>
+    )
 
-    open func onEvent(
-        _ bloc: Any,
-        _ event: Any?
+    func onTransition<Event, State>(
+        _ bloc: Bloc<Event, State>,
+        _ transition: Transition<Event, State>
+    )
+
+    func onError<State>(
+        _ bloc: BlocBase<State>,
+        _ error: Error
+    )
+
+    func onClose<State>(_ bloc: BlocBase<State>)
+}
+
+extension BlocObserver {
+
+    public func onCreate<State>(_ bloc: BlocBase<State>) {}
+
+    public func onEvent<Event, State>(
+        _ bloc: Bloc<Event, State>,
+        _ event: Event
     ) {}
 
-    open func onChange(
-        _ bloc: Any,
-        _ change: Change<Any>
+    public func onChange<State>(
+        _ bloc: BlocBase<State>,
+        _ change: Change<State>
     ) {}
 
-    open func onTransition(
-        _ bloc: Any,
-        _ transition: Transition<Any, Any>
+    public func onTransition<Event, State>(
+        _ bloc: Bloc<Event, State>,
+        _ transition: Transition<Event, State>
     ) {}
 
-    open func onError(
-        _ bloc: Any,
+    public func onError<State>(
+        _ bloc: BlocBase<State>,
         _ error: Error
     ) {}
 
-    open func onClose(_ bloc: Any) {}
+    public func onClose<State>(_ bloc: BlocBase<State>) {}
 }

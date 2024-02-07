@@ -1,8 +1,14 @@
+/*
+ See LICENSE for this package's licensing information.
+*/
+
 import Foundation
 
 open class Cubit<State>: BlocBase<State> {
 
+    // MARK: - Inits
+    
     public override init(_ state: State) {
-        fatalError("init(_:) has not been implemented")
+        super.init(state)
     }
 }
