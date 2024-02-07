@@ -4,27 +4,11 @@
 
 import Foundation
 
-public protocol BlocEventSink<Event>: ErrorSink {
-
-    associatedtype Event: Sendable
-
-    func add<E>(_ event: E)
-}
-
-public typealias EventHandler<Event: Sendable, State: Sendable> = (Event, State) async throws -> Void
-
-public typealias EventMapper<Event: Sendable> = (Event) throws -> Stream<Event>
-
-public typealias EventTransformer<Event: Sendable> = (
-  Stream<Event>,
-  EventMapper<Event>
-) throws -> Stream<Event>
-
 public class Bloc<Event, State>: BlocBase<State>, BlocEventSink {
 
     // MARK: - Public properties
 
-    open var transformer: EventTransformer<Any> {
+    open var transformer: EventTransformer<Event> {
         fatalError("getter:transformer has not been implemented")
     }
 
@@ -35,8 +19,8 @@ public class Bloc<Event, State>: BlocBase<State>, BlocEventSink {
 
     // MARK: - Unsafe properties
 
-    private var _handlers = [_Handler]()
-    private var _emitters = [_Emitter<Any>]()
+    private var _handlers = [BlocHandler]()
+    private var _emitters = [BlocEmitter<State>]()
 
     // MARK: - Inits
 
@@ -78,18 +62,3 @@ public class Bloc<Event, State>: BlocBase<State>, BlocEventSink {
         fatalError("on(_:) has not been implemented")
     }
 }
-
-struct _Handler {
-    let isType: (Sendable) -> Bool
-    let type: Sendable.Type
-
-    init(
-        isType: @escaping (Sendable) -> Bool,
-        type: Sendable.Type
-    ) {
-        self.isType = isType
-        self.type = type
-    }
-}
-
-struct _DefaultBlocObserver: BlocObserver {}
