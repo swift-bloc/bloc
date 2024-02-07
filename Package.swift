@@ -15,13 +15,13 @@ let package = Package(
         .library(
             name: "Bloc",
             targets: ["Bloc"]
-        ),
+        )
     ],
     dependencies: [
         .package(
             url: "https://github.com/apple/swift-docc-plugin",
             from: "1.3.0"
-        ),
+        )
     ],
     targets: [
         .target(
@@ -30,6 +30,6 @@ let package = Package(
         .testTarget(
             name: "BlocTests",
             dependencies: ["Bloc"]
-        ),
+        )
     ]
 )

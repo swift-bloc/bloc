@@ -6,6 +6,8 @@ import Foundation
 
 private class StreamNode<Element: Sendable>: @unchecked Sendable {
 
+    // MARK: - Internal properties
+
     var next: (Element, StreamNode<Element>)? {
         get async {
             lock.lock()
@@ -24,13 +26,19 @@ private class StreamNode<Element: Sendable>: @unchecked Sendable {
         }
     }
 
+    // MARK: - Private properties
+
     private let semaphore = AsyncSemaphore()
     private let lock = Lock()
 
     private var _isClosed: Bool = false
     private var _next: (Element, StreamNode<Element>)?
 
+    // MARK: - Inits
+
     init() {}
+
+    // MARK: - Internal methods
 
     func produce(_ element: Element) -> StreamNode<Element> {
         lock.withLock {
@@ -82,11 +90,17 @@ public struct Stream<Element: Sendable>: AsyncSequence, Sendable {
         }
     }
 
+    // MARK: - Private properties
+
     private let node: @Sendable () -> Node?
+
+    // MARK: - Inits
 
     fileprivate init(_ node: @escaping @Sendable () -> Node?) {
         self.node = node
     }
+
+    // MARK: - Public methods
 
     public func makeAsyncIterator() -> AsyncIterator {
         .init(node: node())
@@ -95,12 +109,12 @@ public struct Stream<Element: Sendable>: AsyncSequence, Sendable {
     @discardableResult
     public func listen(
         priority: TaskPriority? = nil,
-       _ block: @escaping @Sendable (Element) -> Void,
+        onData: @escaping @Sendable (Element) -> Void,
         onDone: (@Sendable () -> Void)? = nil
     ) -> Task<Void, Error> {
         Task(priority: priority) {
             for try await element in self {
-                block(element)
+                onData(element)
             }
 
             onDone?()
@@ -110,7 +124,7 @@ public struct Stream<Element: Sendable>: AsyncSequence, Sendable {
     @discardableResult
     public func listen(
         priority: TaskPriority? = nil,
-        _ block: @escaping @Sendable (Element) -> Void,
+        onData: @escaping @Sendable (Element) -> Void,
         onDone: (@Sendable () -> Void)? = nil,
         onError: @escaping @Sendable (Error) -> Void
     ) -> Task<Void, Never> {
@@ -118,7 +132,7 @@ public struct Stream<Element: Sendable>: AsyncSequence, Sendable {
             while true {
                 do {
                     for try await element in self {
-                        block(element)
+                        onData(element)
                     }
 
                     onDone?()

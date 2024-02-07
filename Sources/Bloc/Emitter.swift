@@ -45,7 +45,7 @@ extension Emitter {
 class _Emitter<State>: Emitter, @unchecked Sendable {
 
     // MARK: - Internal properties
-    
+
     var result: Void {
         get async throws {
             fatalError("getter:result has not been implemented")

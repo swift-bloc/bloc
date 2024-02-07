@@ -12,7 +12,7 @@ public protocol BlocObserver: Sendable {
         _ bloc: Bloc<Event, State>,
         _ event: Event
     )
-    
+
     func onChange<State>(
         _ bloc: BlocBase<State>,
         _ change: Change<State>
