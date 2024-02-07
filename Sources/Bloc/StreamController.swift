@@ -155,7 +155,7 @@ class StreamController<Element: Sendable>: @unchecked Sendable {
                 return nil
             }
 
-            return lock.withLock {
+            return self.lock.withLock {
                 self._node
             }
         }
