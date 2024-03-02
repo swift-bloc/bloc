@@ -4,22 +4,20 @@
 
 import Foundation
 
-open class BlocBase<State>: StateStreamableSource, Emittable, ErrorSink, @unchecked Sendable {
+open class BlocBase<State: Equatable>: StateStreamableSource, Emittable, ErrorSink, @unchecked Sendable {
 
     // MARK: - Open properties
 
-    open var observer: BlocObserver {
-        fatalError("getter:observer has not been implemented")
-    }
+    open var observer: BlocObserver
 
     // MARK: - Public properties
 
     public var stream: Stream<State> {
-        fatalError("getter:stream has not been implemented")
+        return streamController.stream
     }
 
     public var isClosed: Bool {
-        fatalError("getter:isClosed has not been implemented")
+        return streamController.isClosed
     }
 
     public var state: State {
@@ -38,30 +36,40 @@ open class BlocBase<State>: StateStreamableSource, Emittable, ErrorSink, @unchec
 
     // MARK: - Inits
 
-    public init(_ state: State) {
-        defer { observer.onCreate(self) }
+    public init(_ state: State, observer: BlocObserver) {
         self._state = state
+        self.observer = observer
+        observer.onCreate(self)
     }
 
     // MARK: - Open methods
 
     open func onChange(_ change: Change<State>) {
-        fatalError("onChange(_:) has not been implemented")
+        observer.onChange(self, change)
     }
 
     open func addError(_ error: Error) {
-        fatalError("addError(_:) has not been implemented")
+        onError(error)
     }
 
     open func onError(_ error: Error) {
-        fatalError("onError(_:) has not been implemented")
-    }
+        observer.onError(self, error)
+        }
 
-    open func close() async throws {
-        fatalError("close() has not been implemented")
-    }
+    open func close() async {
+        observer.onClose(self)
+            await streamController.close()
+        }
 
-    public func emit(_ state: State) throws {
-        fatalError("emit(_:) has not been implemented")
-    }
+    public func emit(_ state: State) {
+            guard !isClosed else {
+                fatalError("Cannot emit new states after calling close")
+            }
+            guard state != _state || !_emitted else { return }
+            
+            onChange(Change(currentState: _state, nextState: state))
+            self._state = state
+            streamController.add(state)
+            _emitted = true
+        }
 }
